@@ -4927,6 +4927,628 @@ _getGSAP() && gsap.registerPlugin(ScrollTrigger);
 
 /***/ }),
 
+/***/ "./node_modules/gsap/SplitText.js":
+/*!****************************************!*\
+  !*** ./node_modules/gsap/SplitText.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "SplitText": () => (/* binding */ SplitText),
+/* harmony export */   "default": () => (/* binding */ SplitText)
+/* harmony export */ });
+/* harmony import */ var _utils_strings_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/strings.js */ "./node_modules/gsap/utils/strings.js");
+/*!
+ * SplitText: 3.11.4
+ * https://greensock.com
+ *
+ * @license Copyright 2008-2022, GreenSock. All rights reserved.
+ * Subject to the terms at https://greensock.com/standard-license or for
+ * Club GreenSock members, the agreement issued with that membership.
+ * @author: Jack Doyle, jack@greensock.com
+*/
+
+/* eslint-disable */
+
+
+var _doc,
+    _win,
+    _coreInitted,
+    gsap,
+    _context,
+    _toArray,
+    _stripExp = /(?:\r|\n|\t\t)/g,
+    //find carriage returns, new line feeds and double-tabs.
+_multipleSpacesExp = /(?:\s\s+)/g,
+    _initCore = function _initCore(core) {
+  _doc = document;
+  _win = window;
+  gsap = gsap || core || _win.gsap || console.warn("Please gsap.registerPlugin(SplitText)");
+
+  if (gsap) {
+    _toArray = gsap.utils.toArray;
+
+    _context = gsap.core.context || function () {};
+
+    _coreInitted = 1;
+  }
+},
+    _bonusValidated = 1,
+    //<name>SplitText</name>
+_getComputedStyle = function _getComputedStyle(element) {
+  return _win.getComputedStyle(element);
+},
+    _isAbsolute = function _isAbsolute(vars) {
+  return vars.position === "absolute" || vars.absolute === true;
+},
+    //some characters are combining marks (think diacritics/accents in European languages) which involve 2 or 4 characters that combine in the browser to form a single character. Pass in the remaining text and an array of the special characters to search for and if the text starts with one of those special characters, it'll spit back the number of characters to retain (often 2 or 4). Used in the specialChars features that was introduced in 0.6.0.
+_findSpecialChars = function _findSpecialChars(text, chars) {
+  var i = chars.length,
+      s;
+
+  while (--i > -1) {
+    s = chars[i];
+
+    if (text.substr(0, s.length) === s) {
+      return s.length;
+    }
+  }
+},
+    _divStart = " style='position:relative;display:inline-block;'",
+    _cssClassFunc = function _cssClassFunc(cssClass, tag) {
+  if (cssClass === void 0) {
+    cssClass = "";
+  }
+
+  var iterate = ~cssClass.indexOf("++"),
+      num = 1;
+
+  if (iterate) {
+    cssClass = cssClass.split("++").join("");
+  }
+
+  return function () {
+    return "<" + tag + _divStart + (cssClass ? " class='" + cssClass + (iterate ? num++ : "") + "'>" : ">");
+  };
+},
+    _swapText = function _swapText(element, oldText, newText) {
+  var type = element.nodeType;
+
+  if (type === 1 || type === 9 || type === 11) {
+    for (element = element.firstChild; element; element = element.nextSibling) {
+      _swapText(element, oldText, newText);
+    }
+  } else if (type === 3 || type === 4) {
+    element.nodeValue = element.nodeValue.split(oldText).join(newText);
+  }
+},
+    _pushReversed = function _pushReversed(a, merge) {
+  var i = merge.length;
+
+  while (--i > -1) {
+    a.push(merge[i]);
+  }
+},
+    _isBeforeWordDelimiter = function _isBeforeWordDelimiter(e, root, wordDelimiter) {
+  var next;
+
+  while (e && e !== root) {
+    next = e._next || e.nextSibling;
+
+    if (next) {
+      return next.textContent.charAt(0) === wordDelimiter;
+    }
+
+    e = e.parentNode || e._parent;
+  }
+},
+    _deWordify = function _deWordify(e) {
+  var children = _toArray(e.childNodes),
+      l = children.length,
+      i,
+      child;
+
+  for (i = 0; i < l; i++) {
+    child = children[i];
+
+    if (child._isSplit) {
+      _deWordify(child);
+    } else {
+      if (i && child.previousSibling && child.previousSibling.nodeType === 3) {
+        child.previousSibling.nodeValue += child.nodeType === 3 ? child.nodeValue : child.firstChild.nodeValue;
+        e.removeChild(child);
+      } else if (child.nodeType !== 3) {
+        e.insertBefore(child.firstChild, child);
+        e.removeChild(child);
+      }
+    }
+  }
+},
+    _getStyleAsNumber = function _getStyleAsNumber(name, computedStyle) {
+  return parseFloat(computedStyle[name]) || 0;
+},
+    _setPositionsAfterSplit = function _setPositionsAfterSplit(element, vars, allChars, allWords, allLines, origWidth, origHeight) {
+  var cs = _getComputedStyle(element),
+      paddingLeft = _getStyleAsNumber("paddingLeft", cs),
+      lineOffsetY = -999,
+      borderTopAndBottom = _getStyleAsNumber("borderBottomWidth", cs) + _getStyleAsNumber("borderTopWidth", cs),
+      borderLeftAndRight = _getStyleAsNumber("borderLeftWidth", cs) + _getStyleAsNumber("borderRightWidth", cs),
+      padTopAndBottom = _getStyleAsNumber("paddingTop", cs) + _getStyleAsNumber("paddingBottom", cs),
+      padLeftAndRight = _getStyleAsNumber("paddingLeft", cs) + _getStyleAsNumber("paddingRight", cs),
+      lineThreshold = _getStyleAsNumber("fontSize", cs) * (vars.lineThreshold || 0.2),
+      textAlign = cs.textAlign,
+      charArray = [],
+      wordArray = [],
+      lineArray = [],
+      wordDelimiter = vars.wordDelimiter || " ",
+      tag = vars.tag ? vars.tag : vars.span ? "span" : "div",
+      types = vars.type || vars.split || "chars,words,lines",
+      lines = allLines && ~types.indexOf("lines") ? [] : null,
+      words = ~types.indexOf("words"),
+      chars = ~types.indexOf("chars"),
+      absolute = _isAbsolute(vars),
+      linesClass = vars.linesClass,
+      iterateLine = ~(linesClass || "").indexOf("++"),
+      spaceNodesToRemove = [],
+      isFlex = cs.display === "flex",
+      prevInlineDisplay = element.style.display,
+      i,
+      j,
+      l,
+      node,
+      nodes,
+      isChild,
+      curLine,
+      addWordSpaces,
+      style,
+      lineNode,
+      lineWidth,
+      offset;
+
+  iterateLine && (linesClass = linesClass.split("++").join(""));
+  isFlex && (element.style.display = "block"); //copy all the descendant nodes into an array (we can't use a regular nodeList because it's live and we may need to renest things)
+
+  j = element.getElementsByTagName("*");
+  l = j.length;
+  nodes = [];
+
+  for (i = 0; i < l; i++) {
+    nodes[i] = j[i];
+  } //for absolute positioning, we need to record the x/y offsets and width/height for every <div>. And even if we're not positioning things absolutely, in order to accommodate lines, we must figure out where the y offset changes so that we can sense where the lines break, and we populate the lines array.
+
+
+  if (lines || absolute) {
+    for (i = 0; i < l; i++) {
+      node = nodes[i];
+      isChild = node.parentNode === element;
+
+      if (isChild || absolute || chars && !words) {
+        offset = node.offsetTop;
+
+        if (lines && isChild && Math.abs(offset - lineOffsetY) > lineThreshold && (node.nodeName !== "BR" || i === 0)) {
+          //we found some rare occasions where a certain character like &#8209; could cause the offsetTop to be off by 1 pixel, so we build in a threshold.
+          curLine = [];
+          lines.push(curLine);
+          lineOffsetY = offset;
+        }
+
+        if (absolute) {
+          //record offset x and y, as well as width and height so that we can access them later for positioning. Grabbing them at once ensures we don't trigger a browser paint & we maximize performance.
+          node._x = node.offsetLeft;
+          node._y = offset;
+          node._w = node.offsetWidth;
+          node._h = node.offsetHeight;
+        }
+
+        if (lines) {
+          if (node._isSplit && isChild || !chars && isChild || words && isChild || !words && node.parentNode.parentNode === element && !node.parentNode._isSplit) {
+            curLine.push(node);
+            node._x -= paddingLeft;
+
+            if (_isBeforeWordDelimiter(node, element, wordDelimiter)) {
+              node._wordEnd = true;
+            }
+          }
+
+          if (node.nodeName === "BR" && (node.nextSibling && node.nextSibling.nodeName === "BR" || i === 0)) {
+            //two consecutive <br> tags signify a new [empty] line. Also, if the entire block of content STARTS with a <br>, add a line.
+            lines.push([]);
+          }
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < l; i++) {
+    node = nodes[i];
+    isChild = node.parentNode === element;
+
+    if (node.nodeName === "BR") {
+      if (lines || absolute) {
+        node.parentNode && node.parentNode.removeChild(node);
+        nodes.splice(i--, 1);
+        l--;
+      } else if (!words) {
+        element.appendChild(node);
+      }
+
+      continue;
+    }
+
+    if (absolute) {
+      style = node.style;
+
+      if (!words && !isChild) {
+        node._x += node.parentNode._x;
+        node._y += node.parentNode._y;
+      }
+
+      style.left = node._x + "px";
+      style.top = node._y + "px";
+      style.position = "absolute";
+      style.display = "block"; //if we don't set the width/height, things collapse in older versions of IE and the origin for transforms is thrown off in all browsers.
+
+      style.width = node._w + 1 + "px"; //IE is 1px short sometimes. Avoid wrapping
+
+      style.height = node._h + "px";
+    }
+
+    if (!words && chars) {
+      //we always start out wrapping words in their own <div> so that line breaks happen correctly, but here we'll remove those <div> tags if necessary and re-nest the characters directly into the element rather than inside the word <div>
+      if (node._isSplit) {
+        node._next = j = node.nextSibling;
+        node.parentNode.appendChild(node); //put it at the end to keep the order correct.
+
+        while (j && j.nodeType === 3 && j.textContent === " ") {
+          // if there are nodes that are just a space right afterward, go ahead and append them to the end so they're not out of order.
+          node._next = j.nextSibling;
+          node.parentNode.appendChild(j);
+          j = j.nextSibling;
+        }
+      } else if (node.parentNode._isSplit) {
+        node._parent = node.parentNode;
+
+        if (!node.previousSibling && node.firstChild) {
+          node.firstChild._isFirst = true;
+        }
+
+        if (node.nextSibling && node.nextSibling.textContent === " " && !node.nextSibling.nextSibling) {
+          //if the last node inside a nested element is just a space (like T<span>nested </span>), remove it otherwise it'll get placed in the wrong order. Don't remove it right away, though, because we need to sense when words/characters are before a space like _isBeforeWordDelimiter(). Removing it now would make that a false negative.
+          spaceNodesToRemove.push(node.nextSibling);
+        }
+
+        node._next = node.nextSibling && node.nextSibling._isFirst ? null : node.nextSibling;
+        node.parentNode.removeChild(node);
+        nodes.splice(i--, 1);
+        l--;
+      } else if (!isChild) {
+        offset = !node.nextSibling && _isBeforeWordDelimiter(node.parentNode, element, wordDelimiter); //if this is the last letter in the word (and we're not breaking by lines and not positioning things absolutely), we need to add a space afterwards so that the characters don't just mash together
+
+        node.parentNode._parent && node.parentNode._parent.appendChild(node);
+        offset && node.parentNode.appendChild(_doc.createTextNode(" "));
+
+        if (tag === "span") {
+          node.style.display = "inline"; //so that word breaks are honored properly.
+        }
+
+        charArray.push(node);
+      }
+    } else if (node.parentNode._isSplit && !node._isSplit && node.innerHTML !== "") {
+      wordArray.push(node);
+    } else if (chars && !node._isSplit) {
+      if (tag === "span") {
+        node.style.display = "inline";
+      }
+
+      charArray.push(node);
+    }
+  }
+
+  i = spaceNodesToRemove.length;
+
+  while (--i > -1) {
+    spaceNodesToRemove[i].parentNode.removeChild(spaceNodesToRemove[i]);
+  }
+
+  if (lines) {
+    //the next 7 lines just give us the line width in the most reliable way and figure out the left offset (if position isn't relative or absolute). We must set the width along with text-align to ensure everything works properly for various alignments.
+    if (absolute) {
+      lineNode = _doc.createElement(tag);
+      element.appendChild(lineNode);
+      lineWidth = lineNode.offsetWidth + "px";
+      offset = lineNode.offsetParent === element ? 0 : element.offsetLeft;
+      element.removeChild(lineNode);
+    }
+
+    style = element.style.cssText;
+    element.style.cssText = "display:none;"; //to improve performance, set display:none on the element so that the browser doesn't have to worry about reflowing or rendering while we're renesting things. We'll revert the cssText later.
+    //we can't use element.innerHTML = "" because that causes IE to literally delete all the nodes and their content even though we've stored them in an array! So we must loop through the children and remove them.
+
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+
+    addWordSpaces = wordDelimiter === " " && (!absolute || !words && !chars);
+
+    for (i = 0; i < lines.length; i++) {
+      curLine = lines[i];
+      lineNode = _doc.createElement(tag);
+      lineNode.style.cssText = "display:block;text-align:" + textAlign + ";position:" + (absolute ? "absolute;" : "relative;");
+
+      if (linesClass) {
+        lineNode.className = linesClass + (iterateLine ? i + 1 : "");
+      }
+
+      lineArray.push(lineNode);
+      l = curLine.length;
+
+      for (j = 0; j < l; j++) {
+        if (curLine[j].nodeName !== "BR") {
+          node = curLine[j];
+          lineNode.appendChild(node);
+          addWordSpaces && node._wordEnd && lineNode.appendChild(_doc.createTextNode(" "));
+
+          if (absolute) {
+            if (j === 0) {
+              lineNode.style.top = node._y + "px";
+              lineNode.style.left = paddingLeft + offset + "px";
+            }
+
+            node.style.top = "0px";
+
+            if (offset) {
+              node.style.left = node._x - offset + "px";
+            }
+          }
+        }
+      }
+
+      if (l === 0) {
+        //if there are no nodes in the line (typically meaning there were two consecutive <br> tags, just add a non-breaking space so that things display properly.
+        lineNode.innerHTML = "&nbsp;";
+      } else if (!words && !chars) {
+        _deWordify(lineNode);
+
+        _swapText(lineNode, String.fromCharCode(160), " ");
+      }
+
+      if (absolute) {
+        lineNode.style.width = lineWidth;
+        lineNode.style.height = node._h + "px";
+      }
+
+      element.appendChild(lineNode);
+    }
+
+    element.style.cssText = style;
+  } //if everything shifts to being position:absolute, the container can collapse in terms of height or width, so fix that here.
+
+
+  if (absolute) {
+    if (origHeight > element.clientHeight) {
+      element.style.height = origHeight - padTopAndBottom + "px";
+
+      if (element.clientHeight < origHeight) {
+        //IE8 and earlier use a different box model - we must include padding and borders
+        element.style.height = origHeight + borderTopAndBottom + "px";
+      }
+    }
+
+    if (origWidth > element.clientWidth) {
+      element.style.width = origWidth - padLeftAndRight + "px";
+
+      if (element.clientWidth < origWidth) {
+        //IE8 and earlier use a different box model - we must include padding and borders
+        element.style.width = origWidth + borderLeftAndRight + "px";
+      }
+    }
+  }
+
+  isFlex && (prevInlineDisplay ? element.style.display = prevInlineDisplay : element.style.removeProperty("display"));
+
+  _pushReversed(allChars, charArray);
+
+  words && _pushReversed(allWords, wordArray);
+
+  _pushReversed(allLines, lineArray);
+},
+    _splitRawText = function _splitRawText(element, vars, wordStart, charStart) {
+  var tag = vars.tag ? vars.tag : vars.span ? "span" : "div",
+      types = vars.type || vars.split || "chars,words,lines",
+      //words = (types.indexOf("words") !== -1),
+  chars = ~types.indexOf("chars"),
+      absolute = _isAbsolute(vars),
+      wordDelimiter = vars.wordDelimiter || " ",
+      space = wordDelimiter !== " " ? "" : absolute ? "&#173; " : " ",
+      wordEnd = "</" + tag + ">",
+      wordIsOpen = 1,
+      specialChars = vars.specialChars ? typeof vars.specialChars === "function" ? vars.specialChars : _findSpecialChars : null,
+      //specialChars can be an array or a function. For performance reasons, we always set this local "specialChars" to a function to which we pass the remaining text and whatever the original vars.specialChars was so that if it's an array, it works with the _findSpecialChars() function.
+  text,
+      splitText,
+      i,
+      j,
+      l,
+      character,
+      hasTagStart,
+      testResult,
+      container = _doc.createElement("div"),
+      parent = element.parentNode;
+
+  parent.insertBefore(container, element);
+  container.textContent = element.nodeValue;
+  parent.removeChild(element);
+  element = container;
+  text = (0,_utils_strings_js__WEBPACK_IMPORTED_MODULE_0__.getText)(element);
+  hasTagStart = text.indexOf("<") !== -1;
+
+  if (vars.reduceWhiteSpace !== false) {
+    text = text.replace(_multipleSpacesExp, " ").replace(_stripExp, "");
+  }
+
+  if (hasTagStart) {
+    text = text.split("<").join("{{LT}}"); //we can't leave "<" in the string, or when we set the innerHTML, it can be interpreted as a node
+  }
+
+  l = text.length;
+  splitText = (text.charAt(0) === " " ? space : "") + wordStart();
+
+  for (i = 0; i < l; i++) {
+    character = text.charAt(i);
+
+    if (specialChars && (testResult = specialChars(text.substr(i), vars.specialChars))) {
+      // look for any specialChars that were declared. Remember, they can be passed in like {specialChars:["मी", "पा", "है"]} or a function could be defined instead. Either way, the function should return the number of characters that should be grouped together for this "character".
+      character = text.substr(i, testResult || 1);
+      splitText += chars && character !== " " ? charStart() + character + "</" + tag + ">" : character;
+      i += testResult - 1;
+    } else if (character === wordDelimiter && text.charAt(i - 1) !== wordDelimiter && i) {
+      splitText += wordIsOpen ? wordEnd : "";
+      wordIsOpen = 0;
+
+      while (text.charAt(i + 1) === wordDelimiter) {
+        //skip over empty spaces (to avoid making them words)
+        splitText += space;
+        i++;
+      }
+
+      if (i === l - 1) {
+        splitText += space;
+      } else if (text.charAt(i + 1) !== ")") {
+        splitText += space + wordStart();
+        wordIsOpen = 1;
+      }
+    } else if (character === "{" && text.substr(i, 6) === "{{LT}}") {
+      splitText += chars ? charStart() + "{{LT}}" + "</" + tag + ">" : "{{LT}}";
+      i += 5;
+    } else if (character.charCodeAt(0) >= 0xD800 && character.charCodeAt(0) <= 0xDBFF || text.charCodeAt(i + 1) >= 0xFE00 && text.charCodeAt(i + 1) <= 0xFE0F) {
+      //special emoji characters use 2 or 4 unicode characters that we must keep together.
+      j = ((text.substr(i, 12).split(_utils_strings_js__WEBPACK_IMPORTED_MODULE_0__.emojiExp) || [])[1] || "").length || 2;
+      splitText += chars && character !== " " ? charStart() + text.substr(i, j) + "</" + tag + ">" : text.substr(i, j);
+      i += j - 1;
+    } else {
+      splitText += chars && character !== " " ? charStart() + character + "</" + tag + ">" : character;
+    }
+  }
+
+  element.outerHTML = splitText + (wordIsOpen ? wordEnd : "");
+  hasTagStart && _swapText(parent, "{{LT}}", "<"); //note: don't perform this on "element" because that gets replaced with all new elements when we set element.outerHTML.
+},
+    _split = function _split(element, vars, wordStart, charStart) {
+  var children = _toArray(element.childNodes),
+      l = children.length,
+      absolute = _isAbsolute(vars),
+      i,
+      child;
+
+  if (element.nodeType !== 3 || l > 1) {
+    vars.absolute = false;
+
+    for (i = 0; i < l; i++) {
+      child = children[i];
+      child._next = child._isFirst = child._parent = child._wordEnd = null;
+
+      if (child.nodeType !== 3 || /\S+/.test(child.nodeValue)) {
+        if (absolute && child.nodeType !== 3 && _getComputedStyle(child).display === "inline") {
+          //if there's a child node that's display:inline, switch it to inline-block so that absolute positioning works properly (most browsers don't report offsetTop/offsetLeft properly inside a <span> for example)
+          child.style.display = "inline-block";
+          child.style.position = "relative";
+        }
+
+        child._isSplit = true;
+
+        _split(child, vars, wordStart, charStart); //don't split lines on child elements
+
+      }
+    }
+
+    vars.absolute = absolute;
+    element._isSplit = true;
+    return;
+  }
+
+  _splitRawText(element, vars, wordStart, charStart);
+};
+
+var SplitText = /*#__PURE__*/function () {
+  function SplitText(element, vars) {
+    _coreInitted || _initCore();
+    this.elements = _toArray(element);
+    this.chars = [];
+    this.words = [];
+    this.lines = [];
+    this._originals = [];
+    this.vars = vars || {};
+
+    _context(this);
+
+    _bonusValidated && this.split(vars);
+  }
+
+  var _proto = SplitText.prototype;
+
+  _proto.split = function split(vars) {
+    this.isSplit && this.revert();
+    this.vars = vars = vars || this.vars;
+    this._originals.length = this.chars.length = this.words.length = this.lines.length = 0;
+
+    var i = this.elements.length,
+        tag = vars.tag ? vars.tag : vars.span ? "span" : "div",
+        wordStart = _cssClassFunc(vars.wordsClass, tag),
+        charStart = _cssClassFunc(vars.charsClass, tag),
+        origHeight,
+        origWidth,
+        e; //we split in reversed order so that if/when we position:absolute elements, they don't affect the position of the ones after them in the document flow (shifting them up as they're taken out of the document flow).
+
+
+    while (--i > -1) {
+      e = this.elements[i];
+      this._originals[i] = e.innerHTML;
+      origHeight = e.clientHeight;
+      origWidth = e.clientWidth;
+
+      _split(e, vars, wordStart, charStart);
+
+      _setPositionsAfterSplit(e, vars, this.chars, this.words, this.lines, origWidth, origHeight);
+    }
+
+    this.chars.reverse();
+    this.words.reverse();
+    this.lines.reverse();
+    this.isSplit = true;
+    return this;
+  };
+
+  _proto.revert = function revert() {
+    var originals = this._originals;
+
+    if (!originals) {
+      throw "revert() call wasn't scoped properly.";
+    }
+
+    this.elements.forEach(function (e, i) {
+      return e.innerHTML = originals[i];
+    });
+    this.chars = [];
+    this.words = [];
+    this.lines = [];
+    this.isSplit = false;
+    return this;
+  };
+
+  SplitText.create = function create(element, vars) {
+    return new SplitText(element, vars);
+  };
+
+  return SplitText;
+}();
+SplitText.version = "3.11.4";
+SplitText.register = _initCore;
+
+
+/***/ }),
+
 /***/ "./node_modules/gsap/TextPlugin.js":
 /*!*****************************************!*\
   !*** ./node_modules/gsap/TextPlugin.js ***!
@@ -20888,9 +21510,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var gsap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! gsap */ "./node_modules/gsap/index.js");
 /* harmony import */ var gsap_ScrollTrigger__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! gsap/ScrollTrigger */ "./node_modules/gsap/ScrollTrigger.js");
 /* harmony import */ var gsap_TextPlugin__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! gsap/TextPlugin */ "./node_modules/gsap/TextPlugin.js");
+/* harmony import */ var gsap_SplitText__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! gsap/SplitText */ "./node_modules/gsap/SplitText.js");
 /* harmony import */ var gsap_CSSRulePlugin__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! gsap/CSSRulePlugin */ "./node_modules/gsap/CSSRulePlugin.js");
-/* harmony import */ var _barba_core__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @barba/core */ "./node_modules/@barba/core/dist/barba.umd.js");
-/* harmony import */ var _barba_core__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_barba_core__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _barba_core__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @barba/core */ "./node_modules/@barba/core/dist/barba.umd.js");
+/* harmony import */ var _barba_core__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_barba_core__WEBPACK_IMPORTED_MODULE_5__);
 
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.defaults({ ease: "ease" });
@@ -20905,10 +21528,10 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.config({
 
 
 
-//import { SplitText } from "split-text.js";
 
 
-gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.registerPlugin(gsap_ScrollTrigger__WEBPACK_IMPORTED_MODULE_1__.ScrollTrigger, gsap_TextPlugin__WEBPACK_IMPORTED_MODULE_2__.TextPlugin, gsap_CSSRulePlugin__WEBPACK_IMPORTED_MODULE_3__.CSSRulePlugin);
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.registerPlugin(gsap_ScrollTrigger__WEBPACK_IMPORTED_MODULE_1__.ScrollTrigger, gsap_TextPlugin__WEBPACK_IMPORTED_MODULE_2__.TextPlugin, gsap_CSSRulePlugin__WEBPACK_IMPORTED_MODULE_3__.CSSRulePlugin, gsap_SplitText__WEBPACK_IMPORTED_MODULE_4__.SplitText);
 
 
 
@@ -20919,20 +21542,201 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.registerPlugin(gsap_ScrollTrigger__WEBPAC
 
 const Teaseout = "Power3.easeOut"
 const Teasein = "Power3.easeIn"
-const Tduration = 0.4
+const Tduration = 0.6
+const aosdelay = 300
+
+let wasContactClicked = false;
 
 
 var $ = __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js");
+//let intro = new Audio("https://cdn.jsdelivr.net/gh/kujira22/kujira_webgl@main/Ex/wav/glitch_1.wav");
+//let newpagesound = new Audio("https://cdn.jsdelivr.net/gh/kujira22/kujira_webgl@main/Ex/wav/glitch_2.wav");
+
+/////////////// COOOOOKIES!! 🍪
+
+$(document).ready(function() {
+
+  const gateSelector = "#gate";
+  const cookieName = 'gate_clicked';
+ 
+  if (Cookies.get(cookieName)) {
+      $(gateSelector).hide();
+      $(".bg_w").hide();
+      $(".bg_s").hide();
+      $(".bg_b").hide();
+  } else {
+      gateIntro();
+  }
+  
+  $(gateSelector).click(function() {
+      Cookies.set(cookieName, true, { expires: 1 });
+  });
+});
+
+
+
+///////// Anchors! ⚓️⚓️⚓️⚓️⚓️⚓️⚓️ 
+
 
 
 
 //////////TRANSISTIONS
 
 
+///// from gate home intro 
+
+function fromgatehomeintro () {
+
+  const homeintrodelay = 0.6
+
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set('.h1', {
+    fontVariationSettings: "'chao' 1000",
+});
+
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".h1", {
+    fontVariationSettings: "'chao' 1000",
+    color: "#FF00FF"
+}, {
+    duration: Tduration,
+    fontVariationSettings: "'chao' 50",
+    color: "#ebeded",
+    ease: Teasein,
+    delay: homeintrodelay
+});
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_w", {
+  duration: Tduration,
+  fontVariationSettings: "'chao' 500",
+  color: "#000",
+  ease: Teasein,
+  delay: homeintrodelay,
+  onComplete: function() {
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_w", { display: "none" });
+  }
+});
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_s", {
+  duration: Tduration,
+  fontVariationSettings: "'chao' 50",
+  color: "#000",
+  ease: Teasein,
+  delay: homeintrodelay,
+  onComplete: function() {
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_s", { display: "none" });
+  }
+});
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_b", {
+  duration: Tduration,
+  fontVariationSettings: "'chao' 500",
+  color: "#000",
+  ease: Teasein,
+  delay: homeintrodelay,
+  onComplete: function() {
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_b", { display: "none" });
+  }
+});
+
+} 
+
+
+/////////////////  Close menu
+
+function closemenu() {
+
+  
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_g_menu", {
+    duration: 0.6,
+    fontVariationSettings: "'chao' 1000",
+    ease: "power4.in",
+    overwrite: "all",
+    delay: 0,
+});
+
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".menu_link_large", {
+  fontVariationSettings: "'chao' 50",
+}, {
+  duration: 0.6,
+  fontVariationSettings: "'chao' 1000",
+  ease: "power4.in",
+  color: "#ebeded",
+  delay: 0,
+  onComplete: function() {
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".menu", { display: "none" });
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".menu_burger", { display: "flex" });
+  }
+});
+
+}
+
+
+////////Gate into / outro
+
+
+////Intro
+
+function gateIntro() {
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".logo_gate_holder", {
+    fontVariationSettings: "'chao' 1000",
+    display: "flex",
+}, {
+    duration: 0.8,
+    fontVariationSettings: "'chao' 50",
+    ease: "power4.out",
+    delay: 0.4,
+    onComplete: function() {enhancedProximityChaos();}
+});
+
+}
+
+
+////////Outro
+
+function gateOutro() {
+  // Play the audio
+  //intro.play();
+
+  // Animate the logo
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".logo_gate", {
+    duration: 0.5,
+    scale: 20,
+    fontVariationSettings: "'chao' 1000",
+    ease: "power4.out",
+    overwrite: "all",
+    delay: 0.2
+  });
+
+  // Fade the background of .gate to black and then hide .gate
+  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".gate", {
+    duration: 0.5,
+    ease: "power4.out",
+    backgroundColor: "#000", // fade to black
+    delay: 0.2,
+    //opacity: 0, // fade out completely
+    onComplete: function() {
+    //setCookie();
+    document.querySelector('.gate').style.display = 'none';
+      // You can add any other operations you'd like to execute after the animation here
+    }
+  });
+
+  
+  
+  
+  fromgatehomeintro();
+
+
+}
+
+
+
+//////////// Page wipe transitions 
+
 
 function transOut() {
 
-
+//newpagesound.play();
 //page trans out  
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans", {
@@ -20983,7 +21787,8 @@ function transIn() {
         y: "-140vw",
         //opacity: 0,
         duration: Tduration,
-        ease: "none",
+        ease: "none"
+
     });
 
     gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter1", {
@@ -21009,35 +21814,26 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter3", {
 }, {
   duration: Tduration,
   fontVariationSettings: "'chao' 200",
-  ease: Teasein
-  //delay: 0.6
-});
-
-
-////Heading and page intro
-
-    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".pagewrapper", {
-        fontVariationSettings: "'chao' 1000",
-        y: "0vw",
-    }, {
-        duration: Tduration,
-        fontVariationSettings: "'chao' 50",
-        y: "0vw",
-        ease: Teaseout,
-        delay: 0.2
-    });
-
-    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".logo_home_main", {
-      fontVariationSettings: "'chao' 1000",
-  }, {
-      duration: Tduration,
-      fontVariationSettings: "'chao' 50",
-      ease: Teaseout,
-      delay: 0.2,
-      onComplete: function() {chaos();}
+  ease: Teasein,
+  onComplete: function() {
+    chaos();
+  }
   });
 
 
+////Heading and page intro
+/*
+    gsap.fromTo(".pagewrapper", {
+        fontVariationSettings: "'chao' 1000",
+    }, {
+        duration: Tduration,
+        fontVariationSettings: "'chao' 50",
+        ease: Teaseout,
+        delay: 0.2,
+        onComplete: function() {chaos();}
+    });
+*/
+  
     
 }
 
@@ -21047,26 +21843,14 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter3", {
 function simple () {
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".pagewrapper", {
-  fontVariationSettings: "'chao' 1000",
-  y: "0vw",
+  fontVariationSettings: "'chao' 1000"
 }, {
   duration: Tduration,
   fontVariationSettings: "'chao' 50",
-  y: "0vw",
   ease: Teaseout,
-  delay: 0.2
+  delay: 0.2,
+  onComplete: function() {chaos();}
 });
-
-gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".logo_home_main", {
-fontVariationSettings: "'chao' 1000",
-}, {
-duration: Tduration,
-fontVariationSettings: "'chao' 50",
-ease: Teaseout,
-delay: 0.2,
-onComplete: function() {chaos();}
-});
-
 
 
 }
@@ -21074,19 +21858,19 @@ onComplete: function() {chaos();}
 
 //////// Temp Logo EX to EMERGENT X
 
-
+/*
 function toEX() {
 
-  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+  gsap.to(
     ".logo_home_main.ex.alt",
-    { x: "6vw", opacity: 0 },
-    { x: "0vw", opacity: 1, duration: 0.6, ease: "power4.in" }
+   // { x: "6vw", opacity: 0 },
+    { x: "0vw", opacity: 1, duration: 0.4, ease: "power4.in" }
   );
 
-  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+  gsap.to(
     ".logo_home_main.full",
-    { x: "6vw", opacity: 1 },
-    { x: "0vw", opacity: 0, duration: 0.6, ease: "power4.in" }
+   // { x: "6vw", opacity: 1 },
+    { x: "0vw", opacity: 0, duration: 0.4, ease: "power4.in" }
   );
 
 }
@@ -21094,20 +21878,20 @@ function toEX() {
 
 function toEmergentX() {
 
-  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+  gsap.fromTo(
     ".logo_home_main.ex.alt",
     { x: "0vw", opacity: 1 },
     { x: "6vw", opacity: 0, duration: 0.6, ease: "power4.out" }
   );
   
-  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+  gsap.fromTo(
     ".logo_home_main.full",
     { x: "0vw", opacity: 0 },
     { x: "6vw", opacity: 1, duration: 0.6, ease: "power4.out" }
   );
 
 }
-
+*/
 
 
 
@@ -21129,8 +21913,22 @@ function resetWebflow(data) {
 }
 
 
-_barba_core__WEBPACK_IMPORTED_MODULE_4___default().init({
+_barba_core__WEBPACK_IMPORTED_MODULE_5___default().init({
     preventRunning: true,
+
+    beforeEnter: (data) => {
+      if (data.trigger && data.next.url.path === '/' && data.current.url.path === '/') {
+          // If the clicked link is pointing to the homepage and we are already on the homepage
+          if (data.trigger.href === 'https://emergent-x.webflow.io/') {
+              document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+              data.next.namespace = data.current.namespace; // Setting next namespace to current to prevent transition
+          }
+      }
+  },
+
+
+
+
     transitions: [
         {
             name: 'default',
@@ -21138,126 +21936,192 @@ _barba_core__WEBPACK_IMPORTED_MODULE_4___default().init({
             once(data) {
             console.log('Barba once');
             transIn();
-            //toEX();
+            
+            ////////initiating AOS animations per page
 
-            /*
+              if ($('.darkdiv').length > 0) {
+                console.log("you are on the home page");
+                document.querySelector('.gate').addEventListener('click', gateOutro);
+                getyoursliderson();
 
-            $(document).ready(function () {
+                if (document.fonts.check('1em "Exabstract Exabstractvf"')) {
+                  setTimeout(function () {
+                    initAOSTextAnimation();
+                  }, aosdelay);
+                  
+              } else {
+                  document.fonts.onloadingdone = function(evt) {
+                      if (evt.fontfaces.some(face => face.family === 'Exabstract Exabstractvf')) {
+                        setTimeout(function () {
+                          initAOSTextAnimation();
+                        }, aosdelay);
+                      }
+                  };
+              }  
+                
+
+              }
+
               if ($('.lightdiv').length > 0) {
-              console.log("you are on a light page");
-              $(".home_link").hide();
-              $(".home_link_dark").show();
-              $(".menu_burger").hide();
-              $(".menu_burger_dark").show();
-
-            }
-
-            if ($('.darkdiv').length > 0) {
-              console.log("you are on a dark page");
-              $(".home_link").show();
-              $(".home_link_dark").hide();
-              $(".menu_burger").show();
-              $(".menu_burger_dark").hide();
-            }
-
-
-          });
-          */
-              
-              
-              
-              
-            },
-            leave({ current, next, trigger }) {
-              if (trigger && (trigger.classList.contains('menu_link') || trigger.classList.contains('home_link_menu') || trigger.classList.contains('menu_filter') || trigger.classList.contains('menu_close'))) {
+              console.log("you are on a sub page");
+              if (document.fonts.check('1em "Exabstract Exabstractvf"')) {
+                setTimeout(function () {
+                  initAOSTextAnimationLight();
+                }, aosdelay);
                 
             } else {
+                document.fonts.onloadingdone = function(evt) {
+                    if (evt.fontfaces.some(face => face.family === 'Exabstract Exabstractvf')) {
+                      setTimeout(function () {
+                        initAOSTextAnimationLight();
+                      }, aosdelay);
+                        
+                    }
+                };
+            }  
+               }
+
+            
+          
+              
+
+            },
+
+            
+
+
+
+            leave({ current, next, trigger }) {
+
+              if (trigger && trigger.id === 'contact_link') {
+                wasContactClicked = true;
+                closemenu(); 
+                const done = this.async();
+                setTimeout(function () {
+                  lenis.scrollTo(0, {
+                      duration: 0,
+                      immediate: true
+                    });  
+                  done();
+                  }, 600);
+
+              }
+
+              if (trigger && (trigger.classList.contains('menu_link') || trigger.classList.contains('home_link_menu') ||  trigger.classList.contains('menu_filter') ||  trigger.classList.contains('menu_link_large'))) {
+                closemenu(); 
+                const done = this.async();
+                setTimeout(function () {
+                  lenis.scrollTo(0, {
+                      duration: 0,
+                      immediate: true
+                    });  
+                  done();
+                  }, 600);
+                
+
+            } else {
                 // Triggered by other links
+                
                 transOut();
+                const done = this.async();
+                setTimeout(function () {
+                lenis.scrollTo(0, {
+                    duration: 0,
+                    immediate: true
+                  });  
+                done();
+                }, 600);
+                
               }
               
               
-              const done = this.async();
-              setTimeout(function () {
-                done();
-                $(window).scrollTop(0);
-              }, 400);
+              
+              
             },
           
-            enter({ current, next, trigger }) {
-            console.log('Barba enter');
-              
-              $(window).scrollTop(0);
-              if (trigger && (trigger.classList.contains('menu_link') || trigger.classList.contains('home_link_menu') || trigger.classList.contains('menu_filter') || trigger.classList.contains('menu_close'))) {
-                const menuclosetrigger = document.querySelector(".close_menu_clicker");
-                  if (menuclosetrigger) {
-                      menuclosetrigger.click();
-                      simple();
-                      console.log("close_menu_clicker™ is clicked");
+            enter({ current, next, trigger }) {  
+            console.log('Barba enter');  
+            
+            if (wasContactClicked) {
+            setTimeout(function () {
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+                wasContactClicked = false;
+              }, 0);
+            }
 
-
-                  }else{
-                    console.log("close_menu_clicker™ is not found or summit");
-                  }
+              if (trigger && (trigger.classList.contains('menu_link') || trigger.classList.contains('home_link_menu') ||  trigger.classList.contains('menu_filter') ||  trigger.classList.contains('menu_link_large'))) {
+                
+                      if ($('.darkdiv').length > 0) {
+                        console.log("you are on the home from the menu");
+                        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_s", { display: "none" });
+                        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_w", { display: "none" });
+                        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_b", { display: "none" });
+                        setTimeout(function () {
+                          initAOSTextAnimation();
+                        }, 0);
+                      
+                      }
+          
+                      if ($('.lightdiv').length > 0) {
+                      console.log("you are on a sub page");
+                      setTimeout(function () {
+                        initAOSTextAnimationLight();
+                      }, 0);
+                      
+                    }
+                    
 
             } else {
                 // Triggered by other links
                 transIn();
-                //toEX();
+
+                  if ($('.darkdiv').length > 0) {
+                    console.log("you are on the home page");
+                    console.log("you are on the home page");
+                    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_s", { display: "none" });
+                    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_w", { display: "none" });
+                    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_b", { display: "none" });
+                    setTimeout(function () {
+                      initAOSTextAnimation();
+                    }, aosdelay);
+                  }
+      
+                  if ($('.lightdiv').length > 0) {
+                  console.log("you are on a sub page");
+                  setTimeout(function () {
+                    initAOSTextAnimationLight();
+                  }, aosdelay);
+                }
+    
+                
+                
             }
 
 
-              
-              
-
-              ////If page contains this then do this
-
-            /* 
-              if ($('.work_holder').length > 0) {
-                worktransIn();
-              }
-              if ($('.carrers_intro').length > 0) {
-                careerstransIn();
-              }
-              */ 
-
-
-              /*
-
-            $(document).ready(function () {
-              if ($('.lightdiv').length > 0) {
-              console.log("you are on a light page");
-              $(".home_link").hide();
-              $(".home_link_dark").show();
-              $(".menu_burger").hide();
-              $(".menu_burger_dark").show();
-
-            }
-
-            if ($('.darkdiv').length > 0) {
-              console.log("you are on a dark page");
-              $(".home_link").show();
-              $(".home_link_dark").hide();
-              $(".menu_burger").show();
-              $(".menu_burger_dark").hide();
-            }
-
-
-          });
-          */
               
               
             },
             after(data) {
-            console.log('Barba after');    
+            console.log('Barba after');
+            
+            if ($('.darkdiv').length > 0) {
+              console.log("you are on the home page");
+              getyoursliderson();
+              chaos();
+            }
+
+            if ($('.lightdiv').length > 0) {
+            console.log("you are on a sub page");
+            chaos();
+            }
+
+
               
-              setTimeout(() => {
+            setTimeout(() => {
                 resetWebflow(data);
-                chaos();
+            }, 100);
 
-
-              }, 500);
-            },
+            }, 
           }, 
 
     ]
@@ -21266,10 +22130,12 @@ _barba_core__WEBPACK_IMPORTED_MODULE_4___default().init({
 
 
 
+/////////standard chaos©
+
 function chaos() {
     console.log("chaos is running");
 
-    const chaosElements = document.querySelectorAll(".h1, .logo_home_main");
+    const chaosElements = document.querySelectorAll(".h1, .logo_home_main.ex, .logo_home_main_menu");
     let lastMousePosition = { x: 0, y: 0 };
     let currentChao = 50;
     let sustainCounter = 0;
@@ -21296,7 +22162,7 @@ function chaos() {
 
     function updateFontChaos() {
         // Using a threshold for ramp-up: the effect starts when sustainCounter is > 10
-        let targetChaoValue = sustainCounter > 10 ? (sustainCounter - 10) * 10 : 50; // Multiplier of 5 for pronounced effect
+        let targetChaoValue = sustainCounter > 2 ? (sustainCounter - 2) * 10 : 50; // Multiplier of 5 for pronounced effect
         targetChaoValue = Math.min(targetChaoValue, 1000);
 
         gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(chaosElements, {
@@ -21317,6 +22183,550 @@ function chaos() {
     }
 
     window.addEventListener("mousemove", handleMouseMove);
+}
+
+/////////letter by letter proximity chaos©
+
+/*
+function proximityChaos() {
+    console.log("proximitychaos is running");
+
+    const letters = [
+        document.querySelector('.logo_gate.e'),
+        document.querySelector('.logo_gate.m'),
+        document.querySelector('.logo_gate.e2'),
+        document.querySelector('.logo_gate.r2'),
+        document.querySelector('.logo_gate.g'),
+        document.querySelector('.logo_gate.e3'),
+        document.querySelector('.logo_gate.n'),
+        document.querySelector('.logo_gate.t'),
+        document.querySelector('.logo_gate.x')
+    ];
+
+    function getDistanceFromMouse(elem, mouseX, mouseY) {
+        const rect = elem.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = centerX - mouseX;
+        const dy = centerY - mouseY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function calculateChaoValue(distance) {
+        const maxDistance = 500;  // Adjust as needed, this is the distance where 'chao' is 50.
+        const minChao = 50;
+        const maxChao = 1000;
+    
+        if (distance >= maxDistance) return minChao;
+    
+        // Adjusting the falloff power based on proximity
+        const falloffPower = 2 + 5 * (1 - distance / maxDistance);  // Values 2 to 6
+    
+        // Inverse exponential falloff for curve
+        const factor = 1 - (distance / maxDistance);
+        return minChao + (maxChao - minChao) * Math.pow(factor, falloffPower);
+    }
+
+    function handleMouseMove(e) {
+        letters.forEach(letter => {
+            const distance = getDistanceFromMouse(letter, e.clientX, e.clientY);
+            const chaoValue = calculateChaoValue(distance);
+            gsap.to(letter, {
+                fontVariationSettings: `'chao' ${chaoValue}`,
+                duration: 1,
+                ease: "power4.out",
+                overwrite: "all"
+            });
+        });
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+}*/
+
+/////////letter by letter enhanced proximity chaos©
+
+function enhancedProximityChaos() {
+    const letters = [
+        document.querySelector('.logo_gate.e'),
+        document.querySelector('.logo_gate.m'),
+        document.querySelector('.logo_gate.e2'),
+        document.querySelector('.logo_gate.r2'),
+        document.querySelector('.logo_gate.g'),
+        document.querySelector('.logo_gate.e3'),
+        document.querySelector('.logo_gate.n'),
+        document.querySelector('.logo_gate.t'),
+        document.querySelector('.logo_gate.x')
+    ];
+
+    let lastMousePosition = { x: 0, y: 0 };
+    let sustainCounter = 0;
+    let inactivityTimeout;
+
+    function getDistanceFromMouse(elem, mouseX, mouseY) {
+        const rect = elem.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = centerX - mouseX;
+        const dy = centerY - mouseY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function getMouseSpeed(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function calculateChaoValue(distance) {
+        const maxDistance = 500;
+        const minChao = 50;
+        const maxChao = 1000;
+
+        if (distance >= maxDistance) return minChao;
+
+        const falloffPower = 2 + 6 * (1 - distance / maxDistance);
+        const factor = 1 - (distance / maxDistance);
+        return minChao + (maxChao - minChao) * Math.pow(factor, falloffPower);
+    }
+
+    const ACTIVATION_THRESHOLD = 1;
+
+    function updateFontChaos() {
+        letters.forEach(letter => {
+            const distance = getDistanceFromMouse(letter, lastMousePosition.x, lastMousePosition.y);
+            let chaoValue = calculateChaoValue(distance);
+
+            if (sustainCounter > ACTIVATION_THRESHOLD) {
+                chaoValue *= sustainCounter;
+            }
+
+            chaoValue = Math.min(chaoValue, 1000);
+
+            gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(letter, {
+                fontVariationSettings: `'chao' ${chaoValue}`,
+                duration: 0.4,
+                ease: "ease",
+                //overwrite: "all"
+            });
+        });
+    }
+
+    function handleMouseMove(e) {
+        clearTimeout(inactivityTimeout);
+
+        const speed = getMouseSpeed(lastMousePosition.x, lastMousePosition.y, e.clientX, e.clientY);
+        sustainCounter += speed * 0.001;
+
+        lastMousePosition = { x: e.clientX, y: e.clientY };
+
+        updateFontChaos();
+
+        inactivityTimeout = setTimeout(resetMultiplier, 200);
+    }
+
+    function resetMultiplier() {
+        sustainCounter *= 0.5; // A bit stronger decay than before
+        updateFontChaos();
+        if (sustainCounter > 0.01) { // If sustainCounter is close to 0, stop the decay loop
+            inactivityTimeout = setTimeout(resetMultiplier, 200);
+        }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+}
+
+
+/////////letter by letter enhanced proximity chaos with BG colour changes©
+
+/*
+function enhancedProximityColourChaos() {
+    const colorCombos = [
+        { background: '#6A5100', logo: '#FF00FF' },
+        { background: '#79fe02', logo: '#6003e5' },
+        { background: '#6d0133', logo: '#FF6a00' }
+    ];
+
+    const originalColors = {
+        background: '#ebeded',
+        logo: '#000000'
+    };
+    
+    let isColorCycling = false;
+    let currentColorIndex = 0;
+
+    function startColorCycling() {
+        if (isColorCycling) return;
+        isColorCycling = true;
+        cycleColors();
+    }
+    
+    function cycleColors() {
+        if (!isColorCycling) return;
+    
+        const DURATION = 0.5;  // Adjust this value to control the duration for each color cycle
+    
+        gsap.to('.gate', { 
+            backgroundColor: colorCombos[currentColorIndex].background, 
+            duration: DURATION
+        });
+        gsap.to(['.logo_gate_holder', '.logo_gate_holder *', '.enter', '.enter *'], {  // Targeting logo_gate_holder and all its children
+            color: colorCombos[currentColorIndex].logo, 
+            duration: DURATION,
+            onComplete: () => {
+                currentColorIndex = (currentColorIndex + 1) % colorCombos.length;
+                cycleColors();
+            }
+        });
+    }
+
+    function stopColorCycling() {
+        isColorCycling = false;
+        gsap.to('.gate', { backgroundColor: originalColors.background });
+        gsap.to(['.logo_gate_holder', '.logo_gate_holder *', '.enter', '.enter *'], { color: originalColors.logo }); // Targeting logo_gate_holder and all its children
+    }
+
+    const letters = [
+        document.querySelector('.logo_gate.e'),
+        document.querySelector('.logo_gate.m'),
+        document.querySelector('.logo_gate.e2'),
+        document.querySelector('.logo_gate.r2'),
+        document.querySelector('.logo_gate.g'),
+        document.querySelector('.logo_gate.e3'),
+        document.querySelector('.logo_gate.n'),
+        document.querySelector('.logo_gate.t'),
+        document.querySelector('.logo_gate.x')
+    ];
+
+    let lastMousePosition = { x: 0, y: 0 };
+    let sustainCounter = 0;
+    let inactivityTimeout;
+
+    function getDistanceFromMouse(elem, mouseX, mouseY) {
+        const rect = elem.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = centerX - mouseX;
+        const dy = centerY - mouseY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function getMouseSpeed(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function calculateChaoValue(distance) {
+        const maxDistance = 500;
+        const minChao = 50;
+        const maxChao = 1000;
+
+        if (distance >= maxDistance) return minChao;
+
+        const falloffPower = 2 + 6 * (1 - distance / maxDistance);
+        const factor = 1 - (distance / maxDistance);
+        return minChao + (maxChao - minChao) * Math.pow(factor, falloffPower);
+    }
+
+    const ACTIVATION_THRESHOLD = 1;
+
+    function updateFontChaos() {
+        let allMaxedOut = true;
+
+        letters.forEach(letter => {
+            const distance = getDistanceFromMouse(letter, lastMousePosition.x, lastMousePosition.y);
+            let chaoValue = calculateChaoValue(distance);
+
+            if (sustainCounter > ACTIVATION_THRESHOLD) {
+                chaoValue *= sustainCounter;
+            }
+
+            chaoValue = Math.min(chaoValue, 1000);
+
+            gsap.to(letter, {
+                fontVariationSettings: `'chao' ${chaoValue}`,
+                duration: 0.4,
+                ease: "ease",
+                overwrite: "all"
+            });
+
+            if (chaoValue < 600) {
+                allMaxedOut = false;
+            }
+        });
+
+        if (allMaxedOut) {
+            startColorCycling();
+        } else {
+            stopColorCycling();
+        }
+    }
+
+    function handleMouseMove(e) {
+        clearTimeout(inactivityTimeout);
+
+        const speed = getMouseSpeed(lastMousePosition.x, lastMousePosition.y, e.clientX, e.clientY);
+        sustainCounter += speed * 0.001;
+
+        lastMousePosition = { x: e.clientX, y: e.clientY };
+
+        updateFontChaos();
+
+        inactivityTimeout = setTimeout(resetMultiplier, 200);
+    }
+
+    function resetMultiplier() {
+        sustainCounter *= 0.5; // A bit stronger decay than before
+        updateFontChaos();
+        if (sustainCounter > 0.01) { // If sustainCounter is close to 0, stop the decay loop
+            inactivityTimeout = setTimeout(resetMultiplier, 200);
+        }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove);
+}
+
+*/
+
+
+
+
+/////////AOS chaos fuction© home
+function initAOSTextAnimation() {
+    const startingColor = '#6BFE02';
+    const targetColor = '#ebeded';
+
+    const pagewrapperTextElements = document.querySelectorAll('.pagewrapper p');
+    const splitInstances = [];
+
+    pagewrapperTextElements.forEach(element => {
+        const split = new gsap_SplitText__WEBPACK_IMPORTED_MODULE_4__.SplitText(element, { type: 'lines' });
+        splitInstances.push(split);
+        
+        // Set the initial values for fontVariationSettings and color for split text
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(split.lines, {
+            fontVariationSettings: `'chao' 1000`,
+            color: startingColor
+        });
+    });
+
+    function animateSplitTextOnScroll(element, lines) {
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(lines, {
+            scrollTrigger: {
+                trigger: element,
+                start: "top bottom",
+                end: "bottom bottom",
+                once: true,
+                toggleActions: "play none none none",
+                onEnter: lines => {
+                    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(lines, {
+                        fontVariationSettings: `'chao' 50`,
+                        color: targetColor, 
+                        stagger: 0.05,
+                        duration: 1,
+                        //delay: 0.1,
+                        ease: "power4.out"
+                    });
+                }
+            }
+        });
+    }
+
+    splitInstances.forEach((split, index) => {
+        animateSplitTextOnScroll(pagewrapperTextElements[index], split.lines);
+    });
+
+    // Standard AOS animation for non-split text elements
+    const nonSplitTextElements = document.querySelectorAll('.pagewrapper *:not(p):not(.filter):not(.bg_k):not(.submit_btn):not(.bg_km):not(.bg_k_slider):not(.btn_hovered_inner):not(.bg_s):not(.bg_w):not(.bg_b):not(.paragraph.medium.towhite)');
+
+    // Set the initial values for fontVariationSettings and color for standard text
+    nonSplitTextElements.forEach(element => {
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(element, {
+            fontVariationSettings: `'chao' 1000`,
+            color: startingColor
+        });
+    });
+
+    function animateOnScroll(element) {
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(element, {
+            scrollTrigger: {
+                trigger: element,
+                start: "top bottom",
+                end: "bottom bottom",
+                once: true,
+                toggleActions: "play none none none",
+                onEnter: () => gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(element, {
+                    fontVariationSettings: `'chao' 50`,
+                    color: targetColor, 
+                    duration: 1,
+                    //delay: 0.1,
+                    ease: "power4.out"
+                })
+            }
+        });
+    }
+
+    nonSplitTextElements.forEach(element => {
+        animateOnScroll(element);
+    }); 
+}
+
+
+
+
+/////////AOS chaos function© sub pages
+function initAOSTextAnimationLight() {
+    
+    const startingColor = '#6003E5';
+    const targetColor = '#000';
+
+    // Custom colors for .towhite
+    const toWhiteStartingColor = '#6BFE02';  // Replace with your desired start color
+    const toWhiteTargetColor = '#ebeded';   // Replace with your desired target color
+
+    const pagewrapperTextElements = document.querySelectorAll('.pagewrapper.light p');
+    const splitInstances = [];
+
+    pagewrapperTextElements.forEach(element => {
+        const split = new gsap_SplitText__WEBPACK_IMPORTED_MODULE_4__.SplitText(element, { type: 'lines' });
+        splitInstances.push(split);
+        
+        // Set the initial values for fontVariationSettings and color for split text
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(split.lines, {
+            fontVariationSettings: `'chao' 1000`,
+            color: startingColor
+        });
+    });
+
+    function animateSplitTextOnScroll(element, lines) {
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(lines, {
+            scrollTrigger: {
+                trigger: element,
+                start: "top bottom",
+                end: "bottom bottom",
+                once: true,
+                toggleActions: "play none none none",
+                onEnter: lines => {
+                    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(lines, {
+                        fontVariationSettings: `'chao' 50`,
+                        color: targetColor, 
+                        stagger: 0.05,
+                        duration: 1,
+                        //delay: 0.1,
+                        ease: "power4.out"
+                    });
+                }
+            }
+        });
+    }
+
+    splitInstances.forEach((split, index) => {
+        animateSplitTextOnScroll(pagewrapperTextElements[index], split.lines);
+    });
+
+    // Standard AOS animation for non-split text elements
+    const nonSplitTextElements = document.querySelectorAll('.pagewrapper.light *:not(p):not(.filter):not(.bg_k):not(.submit_btn):not(.bg_km):not(.bg_k_slider):not(.btn_hovered_inner):not(.bg_s):not(.bg_w):not(.bg_b)');
+
+    // Set the initial values for fontVariationSettings and color for standard text
+    nonSplitTextElements.forEach(element => {
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(element, {
+            fontVariationSettings: `'chao' 1000`,
+            color: startingColor
+        });
+    });
+
+    function animateOnScroll(element) {
+        // Check if the element has the .towhite class
+        const isToWhite = element.classList.contains('towhite');
+
+        // Use the custom colors if .towhite, otherwise the default colors
+        const animateColor = isToWhite ? toWhiteTargetColor : targetColor;
+        const initialColor = isToWhite ? toWhiteStartingColor : startingColor;
+
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(element, {
+            scrollTrigger: {
+                trigger: element,
+                start: "top bottom",
+                end: "bottom bottom",
+                once: true,
+                toggleActions: "play none none none",
+                onEnter: () => gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(element, {
+                    fontVariationSettings: `'chao' 50`,
+                    color: animateColor, 
+                    duration: 1,
+                    //delay: 0.1,
+                    ease: "power4.out"
+                })
+            },
+            onStart: () => {
+                gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(element, {
+                    color: initialColor
+                });
+            }
+        });
+    }
+
+    nonSplitTextElements.forEach(element => {
+        animateOnScroll(element);
+    }); 
+}
+
+
+
+
+
+
+
+
+
+
+///////// slider functions
+function setupSlider(comboClass, p_num) {
+    let currentTranslationX = 0;
+    let clickCounter = 0;
+
+    function slider() {
+        clickCounter++;
+    
+        // Check viewport width and adjust the translation accordingly
+        const decrementValue = window.innerWidth < 478 ? 82 : 37;
+        currentTranslationX -= decrementValue;
+    
+        if (clickCounter === p_num) {
+            // Move the blocks by the calculated decrementValue vw with animation
+            gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to([`.slider_content.${comboClass}`, `.slider_content.${comboClass}.b`], {
+                duration: 0.3,
+                x: `${currentTranslationX}vw`,
+                ease: "expo.inOut",
+                onComplete: resetSlider
+            });
+        } else {
+            // Move the blocks by the calculated decrementValue vw with animation
+            gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to([`.slider_content.${comboClass}`, `.slider_content.${comboClass}.b`], {
+                duration: 0.3,
+                x: `${currentTranslationX}vw`,
+                ease: "expo.inOut"
+            });
+        }
+    }
+
+    function resetSlider() {
+        // Reset both blocks' positions immediately without animation
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(`.slider_content.${comboClass}`, { x: '0vw' });
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(`.slider_content.${comboClass}.b`, { x: '0vw' });
+
+        // Reset our current translation and click counter for the next round
+        currentTranslationX = 0;
+        clickCounter = 0;
+    }
+
+    // Listen for clicks on .slider_next
+    document.querySelector(`.slider_next.${comboClass}`).addEventListener('click', slider);
+}
+
+function getyoursliderson() {
+    setupSlider('people', 6);
+    setupSlider('work', 5);
 }
 })();
 
