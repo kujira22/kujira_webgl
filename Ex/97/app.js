@@ -24892,9 +24892,25 @@ const keySound = new howler__WEBPACK_IMPORTED_MODULE_1__.Howl({
 ///////////// page sounds
 
 
+function homeSoundfade () {
+
+  var id = homesoundbed.play(); 
+  homesoundbed.fade(0, 0.7, 1000, id); 
+
+  setTimeout(function() {
+    homesoundbed.fade(0.7, 0, 2000, id); 
+  }, 20000); 
+
+  setTimeout(function() {
+    homesoundbed.stop(id); 
+  }, 22000); 
+  
+
+}
+
 function bindpageSound() {
 
-const fields = document.querySelectorAll('.field');
+const fields = document.querySelectorAll('.field, .field_white');
 fields.forEach(function(field) {
   field.addEventListener('input', function() {
     keySound.play();
@@ -24912,6 +24928,13 @@ fields.forEach(function(field) {
 elements.forEach(function(element) {
   element.addEventListener('mouseenter', function() {
     sb2.play();
+  });
+});
+
+var elements = document.querySelectorAll('.link_minor.more_open, .link_minor.more_close');
+elements.forEach(function(element) {
+  element.addEventListener('click', function() {
+    keySound.play();
   });
 });
 
@@ -24962,7 +24985,8 @@ function bindSound() {
   var elements = document.querySelectorAll('.unmute');
   elements.forEach(function(element) {
     element.addEventListener('click', function() {
-      howler__WEBPACK_IMPORTED_MODULE_1__.Howler.mute(false);
+      howler__WEBPACK_IMPORTED_MODULE_1__.Howler.mute(false); 
+      homeSoundfade ();
     });
   });
 
@@ -24970,6 +24994,7 @@ function bindSound() {
   elements.forEach(function(element) {
     element.addEventListener('click', function() {
       howler__WEBPACK_IMPORTED_MODULE_1__.Howler.mute(true);
+      homesoundbed.stop();
     });
   });
 
@@ -25033,14 +25058,14 @@ var elements = document.querySelectorAll('.menu_burger');
 elements.forEach(function(element) {
   element.addEventListener('click', function() {
     menusoundbed.play();
-    menusoundbed.fade(0, 1, 1000);
+    menusoundbed.fade(0, 0.8, 1000);
   });
 });
 
 var elements = document.querySelectorAll('.sb01');
 elements.forEach(function(element) {
   element.addEventListener('click', function() {
-    menusoundbed.fade(1, 0, 2000);
+    menusoundbed.fade(0.8, 0, 1000);
     menusoundbed.once('fade', function(){
     menusoundbed.stop();
   });
@@ -25114,6 +25139,7 @@ $(document).ready(function() {
 ///////// Anchors! ⚓️⚓️⚓️⚓️⚓️⚓️⚓️ 
 
 function homemenu() {
+  
   const notHomeElements = document.querySelectorAll('.menu .not_home');
   notHomeElements.forEach(element => {
       element.style.display = 'none';
@@ -25122,11 +25148,11 @@ function homemenu() {
   const onHomeElements = document.querySelectorAll('.menu .on_home');
   onHomeElements.forEach(element => {
       element.style.display = 'block'; 
-  });
+  });  
 }
 
 function nothomemenu() {
-  
+
   const notHomeElements = document.querySelectorAll('.menu .not_home');
   notHomeElements.forEach(element => {
       element.style.display = 'block'; 
@@ -25188,6 +25214,7 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".menu_link_large", {
 /// GATE Intro
 
 function gateIntro() {
+
   gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".logo_gate_holder", {
     fontVariationSettings: "'chao' 1000",
     display: "flex",
@@ -25210,8 +25237,7 @@ function gateOutro() {
   howler__WEBPACK_IMPORTED_MODULE_1__.Howler.mute(false);
   $(".mute").show();
   $(".unmute").hide();
-  homesoundbed.play();
-  homesoundbed.fade(0, 0.7, 1000);
+  homeSoundfade();
   transinsound.play();
   
 
@@ -25252,7 +25278,7 @@ function gateOutro() {
 function fromgatehomeintro () {
 
   const homeintrodelay = 0.6
-  const bigintrotime = 0.3
+  const bigintrotime = 0.5
 
   gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set('.h1', {
     fontVariationSettings: "'chao' 1000",
@@ -25269,40 +25295,68 @@ function fromgatehomeintro () {
     delay: homeintrodelay,
 });
 
+
+
 ///1st ORANGE
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_b", {
   duration: bigintrotime,
   fontVariationSettings: "'chao' 500",
-  color: "#000",
   ease: Teasein,
   delay: homeintrodelay + 0.1,
+});
+
+////Orange Fade
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_b", {
+  duration: 0.3,
+  color: "#000",
+  ease: Teasein,
+  delay: homeintrodelay + 0.3,
   onComplete: function() {
     gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_b", { display: "none" });
   }
 });
 
-///1st GREEN
+
+
+///2nd GREEN
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_w", {
   duration: bigintrotime,
   fontVariationSettings: "'chao' 300",
+  ease: Teasein,
+  delay: homeintrodelay + 0.3
+});
+
+////Green Fade
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_w", {
+  duration: 0.3,
   color: "#000",
   ease: Teasein,
-  delay: homeintrodelay + 0.3,
+  delay: homeintrodelay + 0.5,
   onComplete: function() {
     gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_w", { display: "none" });
   }
 });
 
-///1st GOLD
+///3rd GOLD
 
 gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_s", {
   duration: bigintrotime,
   fontVariationSettings: "'chao' 50",
+  ease: Teasein,
+  delay: homeintrodelay + 0.5
+});
+
+////Gold Fade
+
+gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(".bg_s", {
+  duration: 0.3,
   color: "#000",
   ease: Teasein,
-  delay: homeintrodelay + 0.4,
+  delay: homeintrodelay + 0.7,
   onComplete: function() {
    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.set(".bg_s", { display: "none" });
   }
@@ -25404,9 +25458,7 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter3", {
   duration: Tduration,
   fontVariationSettings: "'chao' 200",
   ease: Teasein,
-  onComplete: function() {
-    chaos();
-  }
+  //onComplete: function() {chaos();}
   });
 
     
@@ -25491,26 +25543,24 @@ function transOut2() {
   
     gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter2", {
       fontVariationSettings: "'chao' 1000",
-  }, {
+    }, {
       duration: Tduration,
       fontVariationSettings: "'chao' 200",
       ease: Teasein,
       //delay: 0.6
-  });
+    });
   
-  gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter3", {
-    fontVariationSettings: "'chao' 1000",
-  }, {
-    duration: Tduration,
-    fontVariationSettings: "'chao' 200",
-    ease: Teasein,
-    onComplete: function() {
-      chaos();
-    }
+    gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".trans_letter3", {
+      fontVariationSettings: "'chao' 1000",
+    }, {
+      duration: Tduration,
+      fontVariationSettings: "'chao' 200",
+      ease: Teasein,
+      //onComplete: function() {chaos();}
     });
   
       
-  }
+    }
 
 
 
@@ -25527,7 +25577,7 @@ gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(".pagewrapper", {
   fontVariationSettings: "'chao' 50",
   ease: Teaseout,
   delay: 0.2,
-  onComplete: function() {chaos();}
+  //onComplete: function() {chaos();}
 });
 
 
@@ -25577,6 +25627,9 @@ _barba_core__WEBPACK_IMPORTED_MODULE_6___default().init({
             console.log('Barba once');
             transIn();
             howler__WEBPACK_IMPORTED_MODULE_1__.Howler.mute(true);
+            const chaosInstance = chaos();
+            vanillachaos();
+            menuchaos();
             
             
             
@@ -25646,7 +25699,7 @@ _barba_core__WEBPACK_IMPORTED_MODULE_6___default().init({
 
               if (trigger && trigger.id in triggerFlags) {
                 window[triggerFlags[trigger.id]] = true;
-            
+                //chaosInstance.stop();
                 closemenu();
                 const done = this.async();
                 setTimeout(function () {
@@ -25761,12 +25814,13 @@ _barba_core__WEBPACK_IMPORTED_MODULE_6___default().init({
             },
             after(data) {
             console.log('Barba after');
-            
+            //const chaosInstance = chaos();
+            vanillachaos();
             if ($('.darkdiv').length > 0) {
               console.log("you are on the home page");
               homemenu();
               getyoursliderson();
-              chaos();
+              
               selectScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-selectcustom@1/selectcustom.js', function() {
                 console.log('select has loaded');
               });
@@ -25778,7 +25832,7 @@ _barba_core__WEBPACK_IMPORTED_MODULE_6___default().init({
             if ($('.lightdiv').length > 0) {
             console.log("you are on a sub page");
             nothomemenu();
-            chaos();
+            
             }
 
 
@@ -25796,14 +25850,68 @@ _barba_core__WEBPACK_IMPORTED_MODULE_6___default().init({
 
 
 
+/////////special chaos©
+
+function menuchaos() {
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Define the arrays for letters and colors
+        const letters = ['S', 'W', 'X', 'G'];
+        const fgColors = ['#6003e5', '#6D0133', '#6003e5', '#FF00FF'];
+        const bgColors = ['#a6a493', '#FF00FF', '#6A5101', '#FF6A00'];
+        let currentIndex = 0; // This will keep track of the current index for the arrays
+    
+        // Cache DOM references for .fg and .bg elements
+        const fgElements = document.querySelectorAll('.fg');
+        const bgElements = document.querySelectorAll('.bg');
+    
+        // Function to update the letter and color
+        function updateAppearance() {
+            // Update .fg elements
+            fgElements.forEach(el => {
+                el.textContent = letters[currentIndex]; // Change the letter
+                el.style.color = fgColors[currentIndex]; // Change the fg color
+            });
+    
+            // Update .bg elements
+            bgElements.forEach(el => {
+                el.style.backgroundColor = bgColors[currentIndex]; // Change the bg color
+            });
+
+             // Update hover text color for .menu_filter to match the current bg color
+             const newHoverColor = fgColors[currentIndex];
+             const styleSheet = document.createElement('style');
+             styleSheet.innerText = `.menu_filter:hover { color: ${newHoverColor} !important; }`;
+             document.head.appendChild(styleSheet);
+    
+            // Increment the index and loop back to 0 if it exceeds the array length
+            currentIndex = (currentIndex + 1) % letters.length;
+        }
+    
+        // Attach event listener to .menu_burger elements
+        document.querySelectorAll('.menu_burger').forEach(button => {
+            button.addEventListener('click', updateAppearance);
+        });
+    });
+
+}
+
+
+
+
+
 /////////standard chaos©
 
-function chaos() {
-    console.log("chaos is running");
+let isChaosRunning = false;
 
-    const chaosElements = document.querySelectorAll(".h1, .logo_home_main.ex, .logo_home_main_menu");
+function chaos() {
+    if (isChaosRunning) return;  // If chaos is already running, do nothing
+    isChaosRunning = true;  // Set flag to indicate chaos is running
+
+    console.log("chaos with sound is running");
+
+    const chaosElements = document.querySelectorAll(".logo_home_main.ex, .logo_home_main_menu");
     let lastMousePosition = { x: 0, y: 0 };
-    let currentChao = 50;
     let sustainCounter = 0;
     let inactivityTimeout;
 
@@ -25813,6 +25921,89 @@ function chaos() {
     });
 
     let isPlaying = false;
+
+    function getSpeed(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function handleMouseMove(e) {
+        clearTimeout(inactivityTimeout);
+
+        const speed = getSpeed(lastMousePosition.x, lastMousePosition.y, e.clientX, e.clientY);
+        sustainCounter += speed * 0.01;
+
+        lastMousePosition = { x: e.clientX, y: e.clientY };
+
+        updateFontChaos();
+
+        inactivityTimeout = setTimeout(returnToBase, 200);
+    }
+
+    function updateFontChaos() {
+        if (!isChaosRunning) return;  // Check if chaos is still running
+
+        let targetChaoValue = sustainCounter > 2 ? (sustainCounter - 2) * 10 : 50;
+        targetChaoValue = Math.min(targetChaoValue, 1000);
+
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(chaosElements, {
+            fontVariationSettings: `'chao' ${targetChaoValue}`,
+            duration: 0.5,
+            ease: "power3.out",
+            overwrite: "all"
+        });
+
+        if (targetChaoValue > 150 && !isPlaying) {
+            chaosSound.fade(0, 1, 500);
+            chaosSound.play();
+            isPlaying = true;
+        } else if (targetChaoValue <= 50 && isPlaying) {
+            chaosSound.fade(1, 0, 500);
+            chaosSound.once('fade', function () {
+                chaosSound.stop();
+            });
+            isPlaying = false;
+        }
+    }
+
+    function returnToBase() {
+        if (!isChaosRunning) return;  // Check if chaos is still running
+
+        sustainCounter = 0;
+        gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(chaosElements, {
+            fontVariationSettings: `'chao' 50`,
+            duration: 0.5,
+            ease: "power3.out",
+            onComplete: updateFontChaos
+        });
+    }
+
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Add a cleanup function to reset the flag when chaos is stopped
+    function cleanup() {
+        isChaosRunning = false;  // Reset flag to indicate chaos is no longer running
+        window.removeEventListener('mousemove', handleMouseMove);
+    }
+    
+    return {
+        stop: cleanup  // Expose the cleanup function
+    };
+}
+
+
+/////////standard chaos©
+
+function vanillachaos() {
+    console.log("chaos without sound is running");
+
+    const chaosElements = document.querySelectorAll(".h1");
+    let lastMousePosition = { x: 0, y: 0 };
+    let currentChao = 50;
+    let sustainCounter = 0;
+    let inactivityTimeout;
 
     function getSpeed(x1, y1, x2, y2) {
         const dx = x2 - x1;
@@ -25834,7 +26025,8 @@ function chaos() {
     }
 
     function updateFontChaos() {
-        let targetChaoValue = sustainCounter > 2 ? (sustainCounter - 2) * 10 : 50;
+        // Using a threshold for ramp-up: the effect starts when sustainCounter is > 10
+        let targetChaoValue = sustainCounter > 2 ? (sustainCounter - 2) * 10 : 50; // Multiplier of 5 for pronounced effect
         targetChaoValue = Math.min(targetChaoValue, 1000);
 
         gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(chaosElements, {
@@ -25843,18 +26035,6 @@ function chaos() {
             ease: "power3.out",
             overwrite: "all"
         });
-
-        if (targetChaoValue > 150 && !isPlaying) {
-            chaosSound.fade(0, 1, 500);  // Reduced fade-in duration to 500ms
-            chaosSound.play();
-            isPlaying = true;
-        } else if (targetChaoValue <= 50 && isPlaying) {
-            chaosSound.fade(1, 0, 500);  // Reduced fade-out duration to 500ms
-            chaosSound.once('fade', function(){
-                chaosSound.stop();
-            });
-            isPlaying = false;
-        }
     }
 
     function returnToBase() {
@@ -25862,12 +26042,12 @@ function chaos() {
         gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(chaosElements, {
             fontVariationSettings: `'chao' 50`,
             duration: 0.5,
-            ease: "power3.out",
-            onComplete: updateFontChaos  // Call updateFontChaos after the animation completes
+            ease: "power3.out"
         });
     }
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove);
 }
 
 
@@ -26271,6 +26451,106 @@ function initAOSTextAnimationLight() {
     nonSplitTextElements.forEach(element => {
         animateOnScroll(element);
     }); 
+
+
+     ///////////// Input text animation
+
+     const fields = document.querySelectorAll('.field_white');
+
+     fields.forEach(field => {
+        const overlay = field.nextElementSibling;
+         let previousValue = '';
+     
+         field.addEventListener('focus', () => {
+             gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(field, {
+               color: field.classList.contains('select_field') ? startingColor : '#ebeded',
+               duration: 0.3,
+             });
+           
+     
+             gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(overlay_white, {
+                 opacity: 1,
+                 duration: 0.2,
+             });
+         });
+     
+         field.addEventListener('blur', () => {
+             gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(field, {
+                 color: '#ebeded',
+                 duration: 0.2,
+             });
+     
+             gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.to(overlay_white, {
+                 opacity: 0,
+                 duration: 0.2,
+             });
+         });
+     
+         field.addEventListener('input', () => {
+             const currentValue = field.value;
+     
+             // For each letter in the input value
+             Array.from(currentValue).forEach((letter, index) => {
+                 // Check if the span already exists
+                 let span = overlay.children[index];
+     
+                 if (!span) {
+                     // Create a span for the letter
+                     span = document.createElement('span');
+                     overlay.appendChild(span);
+     
+                     // Animate the span
+                     const timeline = gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+                         span,
+                         {
+                             fontVariationSettings: `'chao' 1000`,
+                             color: startingColor,
+                         },
+                         {
+                             fontVariationSettings: `'chao' 50`,
+                             color: targetColor,
+                             duration: 1,
+                             ease: 'power4.out',
+                             delay: index * 0.05, // Stagger the animation
+                         }
+                     );
+     
+                     // Store the GSAP timeline in the span
+                     span.timeline = timeline;
+                 } else if (previousValue[index] !== letter) {
+                     // If the letter is different, create a new animation
+                     const timeline = gsap__WEBPACK_IMPORTED_MODULE_0__.gsap.fromTo(
+                         span,
+                         {
+                             fontVariationSettings: `'chao' 1000`,
+                             color: startingColor,
+                         },
+                         {
+                             fontVariationSettings: `'chao' 50`,
+                             color: targetColor,
+                             duration: 1,
+                             ease: 'power4.out',
+                             delay: index * 0.05, // Stagger the animation
+                         }
+                     );
+     
+                     // Store the GSAP timeline in the span
+                     span.timeline = timeline;
+                 }
+     
+                 // Set the letter content, respecting spaces
+                 span.textContent = letter === ' ' ? '\u00A0' : letter;
+             });
+     
+             // Remove any extra spans if the value is shorter than before
+             while (overlay.children.length > currentValue.length) {
+                 overlay.removeChild(overlay.lastChild);
+             }
+     
+             // Update the previous value
+             previousValue = currentValue;
+         });
+     });
 
     
 
