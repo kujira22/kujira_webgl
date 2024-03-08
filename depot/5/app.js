@@ -394,26 +394,30 @@ function triggerClickOnOutro() {
   
 function workIntro() {
     console.log('work intro triggered');
-    const workIntroMasks = container.querySelectorAll('.work-listing-mask');
+
+    const forms = document.querySelectorAll('.form');
+    forms.forEach(form => {
+        gsap.to(form, {
+            opacity: 1,
+            duration: 0.3,
+            delay: 0,
+            ease: 'power4.out',
+        });
+    });
+
+    const workIntroMasks = document.querySelectorAll('.work-listing-mask');
     workIntroMasks.forEach(mask => {
         gsap.fromTo(mask, {
             height: '100%'
         }, {
             height: '0%',
             duration: 1.6,
+            delay: 0.2,
             ease: "power4.out",
         });
     });
 
-    const forms = container.querySelectorAll('.form');
-    forms.forEach(form => {
-        gsap.to(form, {
-            opacity: 1,
-            duration: 0.3,
-            delay: 0.2,
-            ease: 'power4.out',
-        });
-    });
+   
 }  
   
 
@@ -750,7 +754,7 @@ afterEnter(data) {
         filterScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js', function() {
                 console.log('filter script loaded');
               });
-              workIntro(data.next.container);
+              workIntro();
         }
         
       }
