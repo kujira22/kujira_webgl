@@ -730,6 +730,7 @@ afterEnter(data) {
          triggerClickOnIntroInvert();
          triggerClickOnIntro();
          imageParallax(data.next.container);
+         
          //fixedImageParallax();
          
           if ($('#expertise-page').length > 0) {
@@ -745,6 +746,7 @@ afterEnter(data) {
         }  
         
         if ($('#work-filters').length > 0) {
+            workIntro();   
         filterScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js', function() {
                 console.log('filter script loaded');
               });
