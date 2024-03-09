@@ -572,7 +572,7 @@ barba.init({
       once(data) {
         
         
-      if ($('#work-filters').length > 0) {  
+      if ($('#work-filters').length > 0) {
             filterScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js', function() {
                     console.log('filter script loaded');
                   });
