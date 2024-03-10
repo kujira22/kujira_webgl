@@ -556,6 +556,27 @@ function animateLines(selector) {
 }
 
 
+function attachFilterButtonListeners() {
+
+document.addEventListener('DOMContentLoaded', () => {
+    const filterButton = document.getElementById('filter');
+    const filterAllButton = document.getElementById('filter-all');
+
+    if (filterButton) {
+        filterButton.addEventListener('click', () => {
+            imageParallax(document.body);
+        });
+    }
+
+    if (filterAllButton) {
+        filterAllButton.addEventListener('click', () => {
+            imageParallax(document.body);
+        });
+    }
+});
+
+}
+
 //////////////////// BARBA
   
 
@@ -573,6 +594,7 @@ barba.init({
                     console.log('filter script loaded');
                   });
                   workIntro();
+                  attachFilterButtonListeners();
             }
 
        if ($('#news-filters').length > 0) {  
@@ -761,6 +783,7 @@ afterEnter(data) {
                 console.log('work filter script loaded');
               });
               workIntro();
+              attachFilterButtonListeners();
         }
 
         if ($('#news-filters').length > 0) {  
