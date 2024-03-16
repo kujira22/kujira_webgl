@@ -614,17 +614,10 @@ barba.init({
             }      
         
       if ($('#work-detail').length > 0) {
-           //workDetailIntro();
            modalsetup();  
-           console.log('work detail modal function running & back button is visible');
+           console.log('work detail modal function running');
              
-        }  
-
-        if ($('#news-detail').length > 0) {
-            //newsDetailIntro();
-            console.log('news back button is visible');
-              
-         }   
+        }   
       
       if ($('#expertise-page').length > 0) {
            $('.w-dyn-empty').parents('.awards-year-block').each(function(){ $(this).hide()})
@@ -789,18 +782,11 @@ afterEnter(data) {
         }
         
         if ($('#work-detail').length > 0) {
-            //workDetailIntro();
             modalsetup();  
             console.log('work detail modal function running & back button is visible');
               
          }  
  
-         if ($('#news-detail').length > 0) {
-             //newsDetailIntro();
-             console.log('news back button is visible');
-               
-          }  
-        
         if ($('#work-filters').length > 0) {  
         filterScript('https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js', function() {
                 console.log('work filter script loaded');
