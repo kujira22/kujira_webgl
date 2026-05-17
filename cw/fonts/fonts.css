@@ -1,0 +1,19 @@
+@font-face {
+
+  font-family: 'Whyte Inktrap';
+
+  src: url('https://cdn.jsdelivr.net/gh/kujira22/kujira_webgl@d4ff62d684bfbbb762e089943bbc2f0a8faba98a/cw/fonts/Whyte-Inktrap-Light.otf') format('opentype');
+
+  font-weight: 300;
+
+  font-style: normal;
+
+  font-display: swap;
+
+}
+
+body {
+
+  font-family: 'Whyte Inktrap', sans-serif;
+
+}
